@@ -57,6 +57,28 @@ describe("DayBuddy API", () => {
       assert.equal((await api.request("DELETE", `/api/tasks/${id}`)).status, 404);
     });
 
+    it("hides tasks completed on a previous day, while carrying unfinished tasks", async () => {
+      const doneYesterday = await api.request("POST", "/api/tasks", { label: "Done yesterday" });
+      const openTask = await api.request("POST", "/api/tasks", { label: "Still open" });
+      const doneToday = await api.request("POST", "/api/tasks", { label: "Done today" });
+
+      await api.request("PATCH", `/api/tasks/${doneYesterday.body.task.id}`, {
+        done: true,
+        date: "2026-10-01",
+      });
+      await api.request("PATCH", `/api/tasks/${doneToday.body.task.id}`, {
+        done: true,
+        date: "2026-10-02",
+      });
+
+      const { body } = await api.request("GET", "/api/tasks?date=2026-10-02");
+      const labels = body.tasks.map((task) => task.label);
+      assert.deepEqual(labels, ["Still open", "Done today"]);
+      assert.equal(body.tasks[1].doneAt, "2026-10-02");
+      assert.ok(!labels.includes("Done yesterday"));
+      assert.equal(openTask.status, 201);
+    });
+
     it("rejects an empty label", async () => {
       const { status } = await api.request("POST", "/api/tasks", { label: "   " });
       assert.equal(status, 400);
