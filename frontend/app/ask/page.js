@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import ListenButton from "@/app/components/ListenButton";
 import MicButton from "@/app/components/MicButton";
+import MoodTrendStrip from "@/app/components/MoodTrendStrip";
 import { ErrorNotice, PageIntro, PageShell, SectionHeader, SubpageHeader, fieldClass } from "@/app/components/ui";
 import { api } from "@/app/lib/api";
 import { MOOD_DOT, QUESTION_MAX_LENGTH } from "@/app/lib/constants";
@@ -113,6 +114,7 @@ export default function AskPage() {
       </section>
 
       <section>
+        <MoodTrendStrip history={history} />
         <SectionHeader title="What I remember" />
         <CheckinHistory history={history} />
       </section>
