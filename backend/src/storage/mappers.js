@@ -21,6 +21,7 @@ function toTask(record) {
     id: String(record._id ?? record.id),
     label: record.label,
     done: Boolean(record.done),
+    doneAt: record.doneAt ?? null,
   };
 }
 

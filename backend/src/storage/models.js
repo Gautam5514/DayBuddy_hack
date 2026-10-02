@@ -25,6 +25,7 @@ const taskSchema = new Schema(
     userId: { type: String, required: true, index: true },
     label: { type: String, required: true, trim: true, maxlength: LIMITS.taskLabel },
     done: { type: Boolean, default: false },
+    doneAt: { type: String, default: null },
   },
   { timestamps: true }
 );

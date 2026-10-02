@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/app/lib/api";
+import { todayIso } from "@/app/lib/dates";
 
 const TEMP_PREFIX = "temp-";
 
@@ -16,7 +17,7 @@ export function useTasks() {
   useEffect(() => {
     let active = true;
     api
-      .listTasks()
+      .listTasks(todayIso())
       .then((list) => active && setTasks(list))
       .catch(() => {}); // Backend unreachable: start with an empty list.
     return () => {
@@ -40,7 +41,7 @@ export function useTasks() {
     if (!target) return;
     const done = !target.done;
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, done } : t)));
-    if (!isUnsynced(id)) api.updateTask(id, { done }).catch(() => {});
+    if (!isUnsynced(id)) api.updateTask(id, { done, date: done ? todayIso() : undefined }).catch(() => {});
   }
 
   function removeTask(id) {

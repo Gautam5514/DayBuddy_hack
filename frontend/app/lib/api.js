@@ -38,7 +38,10 @@ export const api = {
   getPrefs: () => request("/api/prefs").then((d) => d.prefs),
   savePrefs: (prefs) => request("/api/prefs", { method: "PUT", body: prefs }).then((d) => d.prefs),
 
-  listTasks: () => request("/api/tasks").then((d) => d.tasks),
+  listTasks: (date) => {
+    const params = date ? `?date=${encodeURIComponent(date)}` : "";
+    return request(`/api/tasks${params}`).then((d) => d.tasks);
+  },
   createTask: (label) => request("/api/tasks", { method: "POST", body: { label } }).then((d) => d.task),
   updateTask: (id, patch) =>
     request(`/api/tasks/${encodeURIComponent(id)}`, { method: "PATCH", body: patch }).then((d) => d.task),

@@ -35,7 +35,7 @@ function createMemoryStore() {
     },
 
     async addTask(userId, label) {
-      const task = { id: randomUUID(), label, done: false };
+      const task = { id: randomUUID(), label, done: false, doneAt: null };
       tasksOf(userId).push(task);
       return toTask(task);
     },

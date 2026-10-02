@@ -39,10 +39,14 @@ const taskLabel = z.string().trim().min(1, "Label is required").max(LIMITS.taskL
 const createTaskSchema = z.object({ label: taskLabel });
 
 const updateTaskSchema = z
-  .object({ label: taskLabel.optional(), done: z.boolean().optional() })
+  .object({ label: taskLabel.optional(), done: z.boolean().optional(), date: z.string().regex(ISO_DATE).optional() })
   .refine((patch) => patch.label !== undefined || patch.done !== undefined, {
     message: "Provide `label` and/or `done`",
   });
+
+const taskListQuerySchema = z.object({
+  date: z.string().regex(ISO_DATE, "Expected YYYY-MM-DD").optional(),
+});
 
 const checkinSchema = z
   .object({
@@ -82,6 +86,7 @@ module.exports = {
   prefsSchema,
   createTaskSchema,
   updateTaskSchema,
+  taskListQuerySchema,
   checkinSchema,
   checkinListQuerySchema,
   planRequestSchema,
