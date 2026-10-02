@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import ListenButton from "@/app/components/ListenButton";
 import { ErrorNotice, SectionHeader, Spinner } from "@/app/components/ui";
 import { useAiReady } from "@/app/hooks/useAiReady";
+import { usePlanReminders } from "@/app/hooks/usePlanReminders";
 import { KIND_DOT } from "@/app/lib/constants";
 import { formatTime } from "@/app/lib/dates";
 
@@ -27,6 +28,7 @@ export default function PlanSection({ plan, loading, error, onGenerate, wakeTime
   );
 
   const items = plan?.items ?? starterPlan;
+  const { remindersEnabled, remindersSupported, remindersDenied, setReminderEnabled } = usePlanReminders(items);
   // What gets read aloud: the greeting, then each step as a short spoken line.
   const spoken = plan
     ? [plan.greeting, ...plan.items.map((i) => `${i.time}, ${i.title}.`), plan.tip].filter(Boolean).join(" ")
@@ -48,6 +50,21 @@ export default function PlanSection({ plan, loading, error, onGenerate, wakeTime
       </SectionHeader>
 
       <ErrorNotice className="mb-4">{error}</ErrorNotice>
+
+      <label className="mb-4 flex items-center gap-2 text-sm text-muted">
+        <input
+          type="checkbox"
+          checked={remindersEnabled}
+          disabled={!remindersSupported}
+          onChange={(e) => setReminderEnabled(e.target.checked)}
+          className="h-4 w-4 accent-clay disabled:cursor-not-allowed"
+        />
+        <span>
+          Remind me
+          {remindersDenied ? " (blocked in browser settings)" : ""}
+          {!remindersSupported ? " (not available in this browser)" : ""}
+        </span>
+      </label>
 
       {showMeta && plan.greeting && (
         <p className="mb-5 font-serif text-lg italic text-ink/80">“{plan.greeting}”</p>
