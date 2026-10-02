@@ -2,10 +2,10 @@
 
 import { useMemo } from "react";
 import ListenButton from "@/app/components/ListenButton";
-import { ErrorNotice, SectionHeader, Spinner } from "@/app/components/ui";
+import { Button, Card, ErrorNotice, SectionHeader, Spinner } from "@/app/components/ui";
 import { useAiReady } from "@/app/hooks/useAiReady";
-import { KIND_DOT } from "@/app/lib/constants";
-import { formatTime } from "@/app/lib/dates";
+import { KIND_STYLE } from "@/app/lib/constants";
+import { formatTime, minutesOfDay, parseClock } from "@/app/lib/dates";
 
 // Shown until a plan is generated — a plain routine, nothing fancy.
 const STARTER_PLAN = [
@@ -17,7 +17,28 @@ const STARTER_PLAN = [
   { time: "6:00 PM", title: "Evening walk", icon: "🚶", kind: "exercise" },
 ];
 
-export default function PlanSection({ plan, loading, error, onGenerate, wakeTime }) {
+// Index of the item happening now (the last one that has started), -1 before the
+// first one, or null while the clock isn't known yet.
+function currentIndex(items, now) {
+  if (!now) return null;
+  const current = minutesOfDay(now);
+  let index = -1;
+  items.forEach((item, i) => {
+    const start = parseClock(item.time);
+    if (start !== null && start <= current) index = i;
+  });
+  return index;
+}
+
+function statusOf(i, nowIndex) {
+  if (nowIndex === null || i > nowIndex) return "upcoming";
+  return i < nowIndex ? "past" : "now";
+}
+
+const sourceLabel = (source) =>
+  source === "gemma" ? "Written for you by Gemma." : "Made by the built-in planner.";
+
+export default function PlanSection({ plan, loading, error, now, onGenerate, wakeTime }) {
   const aiReady = useAiReady();
 
   // Personalize the starter plan with the saved wake-up time.
@@ -27,6 +48,7 @@ export default function PlanSection({ plan, loading, error, onGenerate, wakeTime
   );
 
   const items = plan?.items ?? starterPlan;
+  const nowIndex = currentIndex(items, now);
   // What gets read aloud: the greeting, then each step as a short spoken line.
   const spoken = plan
     ? [plan.greeting, ...plan.items.map((i) => `${i.time}, ${i.title}.`), plan.tip].filter(Boolean).join(" ")
@@ -34,46 +56,43 @@ export default function PlanSection({ plan, loading, error, onGenerate, wakeTime
   const showMeta = plan && !error;
 
   return (
-    <section>
-      <SectionHeader title="Today">
-        <button
-          type="button"
-          onClick={onGenerate}
-          disabled={loading}
-          className="flex shrink-0 items-center gap-2 rounded-full bg-clay px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-clay-dark disabled:cursor-wait disabled:opacity-70"
-        >
+    <Card delay={120} aria-busy={loading}>
+      <SectionHeader
+        title="Today's plan"
+        description={plan ? sourceLabel(plan.source) : "A basic routine for now. Let Gemma tailor it to you."}
+      >
+        <Button onClick={onGenerate} disabled={loading}>
           {loading && <Spinner />}
           {loading ? "Thinking it through…" : plan ? "Redo the plan" : "Plan my day"}
-        </button>
+        </Button>
       </SectionHeader>
 
       <ErrorNotice className="mb-4">{error}</ErrorNotice>
 
       {showMeta && plan.greeting && (
-        <p className="mb-5 font-serif text-lg italic text-ink/80">“{plan.greeting}”</p>
+        <blockquote className="mb-5 border-l-2 border-clay pl-4 font-serif text-lg italic leading-snug text-ink/85">
+          {plan.greeting}
+        </blockquote>
       )}
 
-      {!plan && (
-        <p className="mb-4 text-sm text-muted">
-          This is just a basic routine for now. Plan my day tailors it to you.
-        </p>
-      )}
-
-      <ol className="relative ml-1 border-l border-line">
-        {items.map((item) => (
-          <li key={`${item.time}-${item.title}`} className="relative flex items-baseline gap-4 py-3 pl-6">
-            <span
-              className={`absolute -left-[5px] top-[1.15rem] h-2.5 w-2.5 rounded-full ring-4 ring-paper ${KIND_DOT[item.kind] ?? "bg-stone-300"}`}
-              aria-hidden="true"
-            />
-            <span className="w-[4.5rem] shrink-0 text-sm tabular-nums text-muted">{item.time}</span>
-            <span className="flex-1 text-base">{item.title}</span>
-            <span className="text-lg" aria-hidden="true">
-              {item.icon}
-            </span>
-          </li>
+      <ol className={`transition-opacity ${loading ? "animate-pulse opacity-50" : ""}`}>
+        {items.map((item, i) => (
+          <PlanItem
+            key={`${item.time}-${item.title}`}
+            item={item}
+            status={statusOf(i, nowIndex)}
+            isNext={nowIndex === -1 && i === 0}
+            isLast={i === items.length - 1}
+          />
         ))}
       </ol>
+
+      {showMeta && plan.tip && (
+        <div className="mt-5 rounded-2xl bg-sand px-4 py-3.5">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-clay">One thing to remember</p>
+          <p className="mt-1 text-sm leading-relaxed text-ink/85">{plan.tip}</p>
+        </div>
+      )}
 
       {showMeta && spoken && (
         <div className="mt-4">
@@ -81,16 +100,9 @@ export default function PlanSection({ plan, loading, error, onGenerate, wakeTime
         </div>
       )}
 
-      {showMeta && plan.tip && (
-        <p className="mt-5 rounded-lg bg-sand px-4 py-3 text-sm leading-relaxed text-ink/80">
-          <span className="font-medium text-ink">One thing to remember: </span>
-          {plan.tip}
-        </p>
-      )}
-
       {aiReady === false && (
         <p className="mt-4 text-xs text-muted">
-          The AI planner is offline, so this plan comes from a simpler built-in one.
+          The AI planner is offline, so plans come from a simpler built-in one.
         </p>
       )}
       {aiReady && plan?.source === "rule-based" && (
@@ -99,6 +111,48 @@ export default function PlanSection({ plan, loading, error, onGenerate, wakeTime
           personal one.
         </p>
       )}
-    </section>
+    </Card>
+  );
+}
+
+function PlanItem({ item, status, isNext, isLast }) {
+  const isNow = status === "now";
+  const isPast = status === "past";
+  const badge = isNow ? "Now" : isNext ? "Next" : null;
+
+  return (
+    <li className="relative flex gap-4 pb-2">
+      {!isLast && <span className="absolute bottom-0 left-[21px] top-12 w-px bg-line" aria-hidden="true" />}
+
+      <span
+        className={`relative z-10 grid h-11 w-11 shrink-0 place-items-center rounded-full text-lg ${
+          KIND_STYLE[item.kind] ?? "bg-stone-soft"
+        } ${isNow ? "ring-2 ring-clay ring-offset-2 ring-offset-card" : ""} ${isPast ? "opacity-45 grayscale" : ""}`}
+        aria-hidden="true"
+      >
+        {item.icon}
+      </span>
+
+      <div
+        className={`flex min-w-0 flex-1 items-center justify-between gap-3 rounded-2xl px-3 py-2 transition-colors ${
+          isNow ? "bg-clay-soft" : ""
+        }`}
+        aria-current={isNow ? "time" : undefined}
+      >
+        <div className="min-w-0">
+          <p className={`text-xs tabular-nums ${isNow ? "font-semibold text-clay" : "text-muted"}`}>{item.time}</p>
+          <p className={`leading-snug ${isPast ? "text-muted" : ""}`}>{item.title}</p>
+        </div>
+        {badge && (
+          <span
+            className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+              isNow ? "bg-clay text-on-accent" : "border border-line text-muted"
+            }`}
+          >
+            {badge}
+          </span>
+        )}
+      </div>
+    </li>
   );
 }

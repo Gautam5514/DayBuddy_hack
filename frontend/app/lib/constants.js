@@ -18,12 +18,14 @@ export const MOODS = ["Great", "Okay", "Tired"];
 export const NOTE_MAX_LENGTH = 300;
 export const QUESTION_MAX_LENGTH = 300;
 
-// Timeline dot colour per plan item kind.
-export const KIND_DOT = {
-  routine: "bg-amber-400",
-  exercise: "bg-sage",
-  meal: "bg-clay",
-  work: "bg-stone-400",
+// Icon bubble colours per plan item kind.
+export const KIND_STYLE = {
+  routine: "bg-honey-soft",
+  exercise: "bg-sage-soft",
+  meal: "bg-clay-soft",
+  work: "bg-stone-soft",
 };
 
-export const MOOD_DOT = { Great: "bg-sage", Okay: "bg-amber-400", Tired: "bg-clay" };
+export const MOOD_DOT = { Great: "bg-sage", Okay: "bg-honey", Tired: "bg-clay" };
+
+export const MOOD_HINT = { Great: "Had energy", Okay: "A normal day", Tired: "Low battery" };

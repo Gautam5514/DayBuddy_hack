@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import MicButton from "@/app/components/MicButton";
-import { ChoiceButton, ErrorNotice, SectionHeader, fieldClass } from "@/app/components/ui";
+import { Button, Card, ChoiceButton, ErrorNotice, SectionHeader, Spinner, fieldClass } from "@/app/components/ui";
 import { api } from "@/app/lib/api";
-import { MOODS, NOTE_MAX_LENGTH } from "@/app/lib/constants";
+import { MOOD_DOT, MOOD_HINT, MOODS, NOTE_MAX_LENGTH } from "@/app/lib/constants";
 import { todayIso } from "@/app/lib/dates";
 
 const EMPTY_ANSWERS = { exercised: null, skippedMeal: null, mood: null, note: "" };
@@ -57,7 +57,7 @@ export default function CheckinSection({ tasksCompleted, tasksTotal }) {
   }
 
   return (
-    <section>
+    <Card delay={240}>
       <SectionHeader
         title="Before you sleep"
         description="A quick look back. Tomorrow's plan is built from this."
@@ -66,17 +66,22 @@ export default function CheckinSection({ tasksCompleted, tasksTotal }) {
       {summary ? (
         <CheckinSummary checkin={summary} onEdit={startOver} />
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <YesNo label="Did you exercise today?" value={answers.exercised} onChange={setAnswer("exercised")} />
-          <YesNo label="Did you skip a meal?" value={answers.skippedMeal} onChange={setAnswer("skippedMeal")} />
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="divide-y divide-line rounded-2xl border border-line">
+            <YesNo label="Did you exercise today?" value={answers.exercised} onChange={setAnswer("exercised")} />
+            <YesNo label="Did you skip a meal?" value={answers.skippedMeal} onChange={setAnswer("skippedMeal")} />
+          </div>
 
           <fieldset>
             <legend className="mb-2 text-sm font-medium">How was the day?</legend>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {MOODS.map((mood) => (
-                <ChoiceButton key={mood} active={answers.mood === mood} onClick={() => setAnswer("mood")(mood)}>
-                  {mood}
-                </ChoiceButton>
+                <MoodTile
+                  key={mood}
+                  mood={mood}
+                  active={answers.mood === mood}
+                  onClick={() => setAnswer("mood")(mood)}
+                />
               ))}
             </div>
           </fieldset>
@@ -108,31 +113,32 @@ export default function CheckinSection({ tasksCompleted, tasksTotal }) {
 
           <ErrorNotice>{error}</ErrorNotice>
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-60"
-          >
+          <Button type="submit" variant="dark" disabled={saving} className="w-full sm:w-auto">
+            {saving && <Spinner />}
             {saving ? "Saving…" : "Done for today"}
-          </button>
+          </Button>
         </form>
       )}
-    </section>
+    </Card>
   );
 }
 
 function CheckinSummary({ checkin, onEdit }) {
   return (
-    <div>
+    <div className="animate-rise">
       <p className="font-serif text-xl leading-snug">{summaryLine(checkin)}</p>
-      <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
-        <Stat label="Exercise" value={checkin.exercised ? "Done" : "Skipped"} />
-        <Stat label="Meals" value={checkin.skippedMeal ? "Skipped one" : "All good"} />
-        <Stat label="Tasks" value={`${checkin.tasksCompleted} of ${checkin.tasksTotal}`} />
-        <Stat label="Mood" value={checkin.mood} />
+      <dl className="mt-5 grid grid-cols-2 gap-2 text-sm">
+        <Stat label="Exercise" value={checkin.exercised ? "Done" : "Skipped"} good={checkin.exercised} />
+        <Stat label="Meals" value={checkin.skippedMeal ? "Skipped one" : "All good"} good={!checkin.skippedMeal} />
+        <Stat
+          label="Tasks"
+          value={`${checkin.tasksCompleted} of ${checkin.tasksTotal}`}
+          good={checkin.tasksTotal > 0 && checkin.tasksCompleted === checkin.tasksTotal}
+        />
+        <Stat label="Mood" value={checkin.mood} good={checkin.mood === "Great"} />
       </dl>
       {checkin.note && (
-        <p className="mt-5 border-l-2 border-clay pl-3 text-sm italic text-ink/80">{checkin.note}</p>
+        <p className="mt-4 border-l-2 border-clay pl-3 text-sm italic text-ink/80">{checkin.note}</p>
       )}
       <button type="button" onClick={onEdit} className="mt-5 text-sm font-medium text-clay hover:text-clay-dark">
         Change my answers
@@ -141,10 +147,10 @@ function CheckinSummary({ checkin, onEdit }) {
   );
 }
 
-function Stat({ label, value }) {
+function Stat({ label, value, good }) {
   return (
-    <div>
-      <dt className="text-muted">{label}</dt>
+    <div className={`rounded-2xl px-4 py-3 ${good ? "bg-sage-soft" : "bg-sand"}`}>
+      <dt className="text-xs text-muted">{label}</dt>
       <dd className="mt-0.5 text-base font-medium">{value}</dd>
     </div>
   );
@@ -152,16 +158,33 @@ function Stat({ label, value }) {
 
 function YesNo({ label, value, onChange }) {
   return (
-    <fieldset>
-      <legend className="mb-2 text-sm font-medium">{label}</legend>
-      <div className="flex gap-2">
-        <ChoiceButton active={value === true} onClick={() => onChange(true)}>
+    <fieldset className="flex items-center justify-between gap-3 px-4 py-3">
+      <legend className="float-left text-sm font-medium">{label}</legend>
+      <div className="flex gap-1.5">
+        <ChoiceButton active={value === true} onClick={() => onChange(true)} className="px-3.5 py-1.5">
           Yes
         </ChoiceButton>
-        <ChoiceButton active={value === false} onClick={() => onChange(false)}>
+        <ChoiceButton active={value === false} onClick={() => onChange(false)} className="px-3.5 py-1.5">
           No
         </ChoiceButton>
       </div>
     </fieldset>
+  );
+}
+
+function MoodTile({ mood, active, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`flex flex-col items-start gap-1 rounded-2xl border px-3 py-3 text-left transition-all active:scale-[0.97] ${
+        active ? "border-ink bg-ink text-paper" : "border-line bg-paper hover:border-muted"
+      }`}
+    >
+      <span className={`h-2.5 w-2.5 rounded-full ${MOOD_DOT[mood]}`} aria-hidden="true" />
+      <span className="text-sm font-semibold">{mood}</span>
+      <span className={`text-xs ${active ? "text-paper/70" : "text-muted"}`}>{MOOD_HINT[mood]}</span>
+    </button>
   );
 }

@@ -103,12 +103,12 @@ export default function MicButton({ onText, label = "Speak" }) {
       disabled={state === "working"}
       aria-pressed={listening}
       aria-label={listening ? "Stop listening" : label}
-      className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60 ${
-        listening ? "border-clay bg-clay text-white" : "border-line bg-card text-ink hover:border-stone-400"
+      className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-medium transition-all active:scale-[0.97] disabled:opacity-60 ${
+        listening ? "border-clay bg-clay text-on-accent" : "border-line bg-paper text-ink hover:border-muted"
       }`}
     >
       <span
-        className={`h-2 w-2 rounded-full ${listening ? "animate-pulse bg-white" : "bg-clay"}`}
+        className={`h-2 w-2 rounded-full ${listening ? "animate-pulse bg-on-accent" : "bg-clay"}`}
         aria-hidden="true"
       />
       {state === "listening" ? "Listening… tap to stop" : state === "working" ? "Writing it down…" : label}

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+/* Design tokens. Components only use these (via the Tailwind colours below),
+   so light and dark mode are defined in exactly one place. */
 :root {
   --paper: #f7f1e8;
   --card: #fffdf9;
@@ -9,8 +11,43 @@
   --sand: #efe6d6;
   --clay: #b8512f;
   --clay-dark: #9a4224;
+  --clay-soft: #f6e3d9;
   --sage: #5f7f63;
   --sage-soft: #e4ece3;
+  --honey: #b7791f;
+  --honey-soft: #f6ead1;
+  --stone: #8a8178;
+  --stone-soft: #ece6dd;
+  --danger: #a23a1f;
+  --danger-soft: #fbe9e4;
+  --on-accent: #ffffff;
+  --glow: rgba(232, 160, 110, 0.22);
+  --shadow: 0 1px 0 rgba(60, 40, 20, 0.03), 0 18px 40px -24px rgba(60, 40, 20, 0.28);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1a1613;
+    --card: #231e1a;
+    --ink: #f2e9dd;
+    --muted: #a89b8d;
+    --line: #3a322b;
+    --sand: #2c2520;
+    --clay: #e2805a;
+    --clay-dark: #f09673;
+    --clay-soft: #3a261d;
+    --sage: #93b597;
+    --sage-soft: #24302a;
+    --honey: #e2ae52;
+    --honey-soft: #372c19;
+    --stone: #a69d93;
+    --stone-soft: #2e2824;
+    --danger: #f2a58e;
+    --danger-soft: #3a201a;
+    --on-accent: #1a1613;
+    --glow: rgba(226, 128, 90, 0.12);
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 18px 40px -24px rgba(0, 0, 0, 0.7);
+  }
 }
 
 @theme inline {
@@ -22,19 +59,61 @@
   --color-sand: var(--sand);
   --color-clay: var(--clay);
   --color-clay-dark: var(--clay-dark);
+  --color-clay-soft: var(--clay-soft);
   --color-sage: var(--sage);
   --color-sage-soft: var(--sage-soft);
+  --color-honey: var(--honey);
+  --color-honey-soft: var(--honey-soft);
+  --color-stone: var(--stone);
+  --color-stone-soft: var(--stone-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-on-accent: var(--on-accent);
   --font-sans: var(--font-body);
   --font-serif: var(--font-display);
+  --shadow-card: var(--shadow);
+
+  --animate-rise: rise 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-pop: pop 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+
+  @keyframes pop {
+    from {
+      transform: scale(0.6);
+    }
+  }
 }
 
 body {
-  background: var(--paper);
+  background-color: var(--paper);
+  background-image: radial-gradient(ellipse 80% 420px at 50% -80px, var(--glow), transparent);
+  background-repeat: no-repeat;
   color: var(--ink);
   font-family: var(--font-body), system-ui, -apple-system, sans-serif;
 }
 
 ::selection {
   background: var(--clay);
-  color: #fff;
+  color: var(--on-accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--clay);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -47,13 +47,26 @@ export default function ListenButton({ text, label = "Read it to me" }) {
     }
   }
 
+  const playing = state === "playing";
   return (
     <button
       type="button"
       onClick={toggle}
-      className="text-sm font-medium text-clay hover:text-clay-dark disabled:opacity-60"
+      aria-pressed={playing}
+      className="inline-flex items-center gap-2 rounded-full border border-line bg-paper py-1.5 pl-1.5 pr-4 text-sm font-medium text-ink transition-all hover:border-muted active:scale-[0.97]"
     >
-      {state === "loading" ? "One moment…" : state === "playing" ? "Stop" : `▶ ${label}`}
+      <span className="grid h-7 w-7 place-items-center rounded-full bg-clay text-on-accent" aria-hidden="true">
+        {playing ? (
+          <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor">
+            <rect x="6" y="6" width="12" height="12" rx="2" />
+          </svg>
+        ) : (
+          <svg viewBox="0 0 24 24" className="ml-0.5 h-3 w-3" fill="currentColor">
+            <path d="M7 5v14l12-7z" />
+          </svg>
+        )}
+      </span>
+      {state === "loading" ? "One moment…" : playing ? "Stop" : label}
     </button>
   );
 }
