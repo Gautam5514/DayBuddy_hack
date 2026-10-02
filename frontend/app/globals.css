@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #f7f1e8;
+  --card: #fffdf9;
+  --ink: #2a2420;
+  --muted: #7a6f64;
+  --line: #e8dfd0;
+  --sand: #efe6d6;
+  --clay: #b8512f;
+  --clay-dark: #9a4224;
+  --sage: #5f7f63;
+  --sage-soft: #e4ece3;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-sand: var(--sand);
+  --color-clay: var(--clay);
+  --color-clay-dark: var(--clay-dark);
+  --color-sage: var(--sage);
+  --color-sage-soft: var(--sage-soft);
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-display);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+}
+
+::selection {
+  background: var(--clay);
+  color: #fff;
+}
