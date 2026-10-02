@@ -1,0 +1,44 @@
+# Render Blueprint: one API + one static frontend.
+# Secrets (sync: false) are asked for when the Blueprint is created.
+
+services:
+  - type: web
+    name: daybuddy-yashu-api
+    runtime: node
+    region: singapore
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: node src/server.js
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: NODE_ENV
+        value: production
+      - key: GEMMA_API_MODEL
+        value: gemma-4-26b-a4b-it
+      - key: CORS_ORIGIN
+        value: https://daybuddy-yashu.onrender.com
+      - key: SENTRY_ENVIRONMENT
+        value: production
+      - key: GEMMA_API_KEY
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+
+  - type: web
+    name: daybuddy-yashu
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: out
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: NEXT_PUBLIC_API_BASE
+        value: https://daybuddy-yashu-api.onrender.com
